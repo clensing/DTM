@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Wealth Optimization Calculator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --steel:    #8b9db6;
+  --wine:     #8b9db6;
+  --crimson:  #7a8ca5;
+  --gold:     #8b9db6;
+  --blush:    #dcafa2;
+  --linen:    #f0e7e0;
+  --linen-dk: #e8ddd6;
+  --white:    #ffffff;
+  --text:     #3a3a3a;
+  --muted:    #7a8898;
+  --border:   #d9cdc6;
+  --radius:   14px;
+  --shadow:   0 6px 32px rgba(139,157,182,0.15);
+  --shadow-sm:0 2px 12px rgba(139,157,182,0.10);
+}
+
+body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--linen);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+header{
+  background:var(--steel);
+  padding:0 40px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  min-height:70px;
+}
+.logo-block{display:flex;flex-direction:column;justify-content:center;padding:18px 0}
+.logo{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:18px;font-weight:700;color:var(--linen);letter-spacing:1.5px}
+.logo em{font-style:normal;color:var(--blush)}
+.tagline{font-size:11px;color:rgba(240,231,224,0.55);letter-spacing:1.8px;text-transform:uppercase;margin-top:3px}
+
+/* ── HERO ── */
+.hero{
+  background:linear-gradient(135deg, var(--steel) 0%, #7a8ca5 60%, #6a7c95 100%);
+  padding:60px 40px 52px;text-align:center;color:var(--white);
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-inner{position:relative;z-index:1}
+.hero-eyebrow{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--blush);margin-bottom:16px;font-weight:600}
+.hero h1{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:clamp(32px,5.5vw,54px);font-weight:700;line-height:1.12;max-width:680px;margin:0 auto 18px;letter-spacing:-0.5px}
+.hero h1 em{font-style:normal;color:var(--blush)}
+.hero p{font-size:16px;color:rgba(255,255,255,0.72);max-width:500px;margin:0 auto;line-height:1.7}
+
+/* ── PROGRESS NAV ── */
+.progress-nav{
+  background:var(--white);border-bottom:1px solid var(--border);
+  padding:0 40px;display:flex;align-items:stretch;gap:0;overflow-x:auto;
+  position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm);
+}
+.nav-step{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:14px 22px;gap:4px;cursor:pointer;border-bottom:3px solid transparent;
+  transition:all .2s;white-space:nowrap;flex-shrink:0;user-select:none;
+}
+.nav-step:hover{background:var(--linen);border-bottom-color:var(--blush)}
+.nav-step.done{border-bottom-color:var(--steel)}
+.nav-step.active{border-bottom-color:var(--blush);background:var(--linen)}
+.nav-num{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--border);color:var(--muted);
+  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.nav-step.done .nav-num{background:var(--steel);color:var(--white)}
+.nav-step.active .nav-num{background:var(--blush);color:var(--white)}
+.nav-label{font-size:11px;font-weight:600;color:var(--muted);text-align:center;max-width:80px;line-height:1.3}
+.nav-step.active .nav-label{color:var(--blush)}
+.nav-step.done .nav-label{color:var(--steel)}
+
+/* ── MAIN ── */
+main{max-width:1000px;margin:0 auto;padding:48px 24px 100px;display:grid;gap:36px}
+
+/* ── SECTION CARD ── */
+.section-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--border)}
+.section-head{
+  background:linear-gradient(135deg,var(--steel),#6a7c95);
+  padding:22px 30px;display:flex;align-items:flex-start;gap:16px;
+}
+.s-num{
+  font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
+  font-size:38px;font-weight:700;color:rgba(240,231,224,0.3);
+  line-height:1;flex-shrink:0;margin-top:-4px;
+}
+.s-titles h2{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:22px;font-weight:700;color:var(--linen);letter-spacing:0.2px}
+.s-titles p{font-size:13px;color:rgba(240,231,224,0.65);margin-top:4px;line-height:1.5}
+.section-body{padding:30px}
+
+/* ── INPUTS ── */
+.input-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-bottom:24px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;margin-bottom:7px}
+.input-wrap{position:relative}
+.pfx,.sfx{position:absolute;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted);font-weight:600;pointer-events:none}
+.pfx{left:13px}.sfx{right:13px}
+.field input,.field select{
+  width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;
+  font-size:15px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:var(--text);background:var(--white);
+  transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none
+}
+.field input.pl{padding-left:28px}.field input.pr{padding-right:28px}
+.field input:focus,.field select:focus{outline:none;border-color:var(--steel);box-shadow:0 0 0 3px rgba(139,157,182,.15)}
+
+/* ── SCORE BANDS ── */
+.bands{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:24px}
+@media(max-width:600px){.bands{grid-template-columns:repeat(3,1fr)}}
+.band{
+  border:1.5px solid var(--border);border-radius:9px;padding:11px 6px;
+  text-align:center;cursor:pointer;background:var(--white);transition:all .18s;user-select:none;
+}
+.band:hover{border-color:var(--blush);background:var(--linen)}
+.band.active{border-color:var(--steel);background:linear-gradient(135deg,var(--steel),#6a7c95);color:var(--white)}
+.band .br{font-size:12px;font-weight:700;display:block}
+.band .bl{font-size:10px;opacity:.7;display:block;margin-top:2px}
+.band.b-poor .br{color:#b94040}.band.b-fair .br{color:#c07830}
+.band.b-good .br{color:#8b9db6}.band.b-vg .br{color:#6a8aaa}.band.b-exc .br{color:#dcafa2}
+.band.active .br,.band.active .bl{color:var(--white)!important}
+
+/* ── MORTGAGE RANGE ── */
+.m-ranges{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:24px}
+.mrange{
+  border:1.5px solid var(--border);border-radius:9px;padding:10px 8px;
+  text-align:center;cursor:pointer;background:var(--white);transition:all .18s;
+}
+.mrange:hover{border-color:var(--blush);background:var(--linen)}
+.mrange.active{border-color:var(--blush);background:var(--blush);color:var(--white)}
+.mrange .mv{font-size:13px;font-weight:700;display:block}
+.mrange .ml{font-size:10px;opacity:.7;display:block;margin-top:2px}
+.mrange.active .mv,.mrange.active .ml{color:var(--white)}
+
+/* ── CALC BUTTON ── */
+.calc-btn{
+  display:block;width:100%;padding:15px;
+  background:linear-gradient(135deg,var(--steel),#6a7c95);
+  color:var(--linen);border:none;border-radius:9px;
+  font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:19px;font-weight:700;
+  cursor:pointer;letter-spacing:.3px;transition:opacity .2s,transform .1s;
+}
+.calc-btn:hover{opacity:.9}.calc-btn:active{transform:scale(.99)}
+
+/* ── RESULTS ── */
+.results{display:none;margin-top:28px}
+.results.show{display:block}
+.res-eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+
+/* ── TABLE ── */
+.dtm-table{width:100%;border-collapse:collapse;font-size:14px}
+.dtm-table th{
+  text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--muted);padding:9px 14px;border-bottom:2px solid var(--border);background:var(--linen)
+}
+.dtm-table td{padding:13px 14px;border-bottom:1px solid var(--linen-dk);vertical-align:top}
+.dtm-table tr:last-child td{border-bottom:none}
+.dtm-table tr:hover td{background:#faf7f5}
+.dtm-table .hl{font-weight:700;color:var(--steel)}
+.dtm-table .pos{font-weight:700;color:#2e7d52}
+.dtm-table .neg{font-weight:700;color:var(--blush)}
+.dtm-table .cur-row td{background:#fff8f6}
+.dtm-table .you-row td{background:#f4f9f6}
+
+/* ── HIGHLIGHT BOX ── */
+.hi-box{
+  background:linear-gradient(135deg,var(--steel),#6a7c95);
+  border-radius:12px;padding:24px 28px;display:flex;flex-wrap:wrap;
+  align-items:center;justify-content:space-between;gap:16px;margin-top:20px
+}
+.hi-box .hb-label{font-size:13px;color:rgba(240,231,224,.65)}
+.hi-box .hb-val{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:clamp(26px,4vw,38px);font-weight:700;color:var(--blush)}
+.hi-box .hb-sub{font-size:12px;color:rgba(240,231,224,.5);margin-top:2px}
+
+/* ── INVEST GRID ── */
+.invest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.inv-card{border:1.5px solid var(--border);border-radius:10px;padding:16px 14px;position:relative}
+.inv-card.highlight{border-color:var(--blush);box-shadow:0 0 0 3px rgba(220,175,162,.20)}
+.inv-card .ic-label{font-size:11px;color:var(--muted);font-weight:600}
+.inv-card .ic-mo{font-size:14px;font-weight:700;color:var(--text);margin:4px 0}
+.inv-card .ic-val{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:22px;font-weight:700;color:var(--blush)}
+.inv-card .ic-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.you-here{position:absolute;top:-10px;right:10px;background:var(--blush);color:var(--white);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:2px 8px;border-radius:20px}
+
+/* ── SECTION 5 REPORT ── */
+.report-card{background:var(--linen);border:1.5px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px}
+.report-total{
+  background:linear-gradient(135deg,var(--steel),#6a7c95);
+  border-radius:14px;padding:32px 36px;text-align:center;margin-top:24px
+}
+.rt-label{font-size:13px;color:rgba(240,231,224,.65);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.rt-val{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:clamp(44px,7vw,72px);font-weight:700;color:var(--blush);line-height:1}
+.rt-sub{font-size:13px;color:rgba(240,231,224,.5);margin-top:12px;line-height:1.6}
+
+.pdf-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  margin-top:24px;padding:14px 30px;
+  background:var(--blush);color:var(--white);border:none;border-radius:9px;
+  font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;cursor:pointer;
+  transition:opacity .2s;letter-spacing:.2px;
+}
+.pdf-btn:hover{opacity:.88}
+.pdf-btn svg{flex-shrink:0}
+
+.run-report-btn{
+  display:block;width:100%;padding:16px;
+  background:linear-gradient(135deg,var(--blush) 0%,#c99a8d 100%);
+  color:var(--white);border:none;border-radius:9px;
+  font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:20px;font-weight:700;
+  cursor:pointer;letter-spacing:.3px;transition:opacity .2s;margin-top:24px;
+}
+.run-report-btn:hover{opacity:.9}
+
+.notice{
+  background:var(--linen);border-left:3px solid var(--blush);border-radius:0 8px 8px 0;
+  padding:14px 18px;font-size:12px;color:var(--muted);line-height:1.7;margin-top:32px;
+}
+
+@media(max-width:700px){
+  header,.hero{padding-left:20px;padding-right:20px}
+  .progress-nav{padding:0 10px}
+  main{padding:28px 14px 80px}
+  .section-body{padding:20px}
+  .hi-box{flex-direction:column;gap:12px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-block">
+    <div class="logo">WEALTH OPTIMIZATION CALCULATOR</div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Your personalized financial picture</div>
+    <h1>Discover your <em>true</em> wealth opportunity</h1>
+    <p>Complete each section below to see a full analysis of what you could save, earn, and build by optimizing every pillar of your financial life.</p>
+  </div>
+</div>
+
+<!-- PROGRESS NAV -->
+<nav class="progress-nav" id="prog-nav">
+  <div class="nav-step active" id="nav1" onclick="scrollToSection('s1')"><div class="nav-num">1</div><div class="nav-label">Credit Score</div></div>
+  <div class="nav-step" id="nav2" onclick="scrollToSection('s2')"><div class="nav-num">2</div><div class="nav-label">CC Debt</div></div>
+  <div class="nav-step" id="nav3" onclick="scrollToSection('s3')"><div class="nav-num">3</div><div class="nav-label">HYSA</div></div>
+  <div class="nav-step" id="nav4" onclick="scrollToSection('s4')"><div class="nav-num">4</div><div class="nav-label">Investing</div></div>
+  <div class="nav-step" id="nav5" onclick="scrollToSection('s5')"><div class="nav-num">5</div><div class="nav-label">Report</div></div>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════
+     SECTION 1 — CREDIT SCORE IMPACT
+════════════════════════════════════════════ -->
+<div class="section-card" id="s1">
+  <div class="section-head">
+    <div class="s-num">01</div>
+    <div class="s-titles">
+      <h2>Credit Score Impact</h2>
+      <p>See how improving your credit score can dramatically reduce your mortgage costs over time</p>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div style="margin-bottom:20px">
+      <div class="field" style="margin-bottom:8px"><label>Your Current Credit Score Range</label></div>
+      <div class="bands" id="score-bands">
+        <div class="band b-poor" data-band="poor" onclick="pickBand(this,'score-bands')"><span class="br">300–579</span><span class="bl">Poor</span></div>
+        <div class="band b-fair" data-band="fair" onclick="pickBand(this,'score-bands')"><span class="br">580–669</span><span class="bl">Fair</span></div>
+        <div class="band b-good" data-band="good" onclick="pickBand(this,'score-bands')"><span class="br">670–739</span><span class="bl">Good</span></div>
+        <div class="band b-vg"   data-band="vgood" onclick="pickBand(this,'score-bands')"><span class="br">740–799</span><span class="bl">Very Good</span></div>
+        <div class="band b-exc"  data-band="exc"   onclick="pickBand(this,'score-bands')"><span class="br">800–850</span><span class="bl">Exceptional</span></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <div class="field" style="margin-bottom:8px"><label>Expected Mortgage Amount</label></div>
+      <div class="m-ranges" id="mort-ranges">
+        <div class="mrange" data-val="150000" onclick="pickRange(this,'mort-ranges')"><span class="mv">$150,000</span><span class="ml">Starter</span></div>
+        <div class="mrange" data-val="250000" onclick="pickRange(this,'mort-ranges')"><span class="mv">$250,000</span><span class="ml">Mid-range</span></div>
+        <div class="mrange" data-val="350000" onclick="pickRange(this,'mort-ranges')"><span class="mv">$350,000</span><span class="ml">Established</span></div>
+        <div class="mrange" data-val="500000" onclick="pickRange(this,'mort-ranges')"><span class="mv">$500,000</span><span class="ml">Premium</span></div>
+        <div class="mrange" data-val="750000" onclick="pickRange(this,'mort-ranges')"><span class="mv">$750,000</span><span class="ml">Luxury</span></div>
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calcScore()">Calculate My Mortgage Savings →</button>
+
+    <div class="results" id="s1-res">
+      <div class="res-eyebrow">30-Year Fixed Mortgage — Credit Score Comparison</div>
+      <div style="overflow-x:auto">
+        <table class="dtm-table" id="s1-table">
+          <thead>
+            <tr>
+              <th>Score Range</th>
+              <th>Credit Tier</th>
+              <th>Est. APR</th>
+              <th>Monthly Payment</th>
+              <th>Monthly Savings*</th>
+              <th>30-Year Savings*</th>
+            </tr>
+          </thead>
+          <tbody id="s1-tbody"></tbody>
+        </table>
+      </div>
+      <div class="hi-box" id="s1-hi">
+        <div><div class="hb-label">Your Current Monthly Payment</div><div class="hb-val" id="s1-cur-mo">—</div></div>
+        <div><div class="hb-label" id="s1-next-label">At Next Credit Tier</div><div class="hb-val" id="s1-exc-mo">—</div></div>
+        <div><div class="hb-label">Your 30-Year Savings Opportunity</div><div class="hb-val" id="s1-30yr">—</div><div class="hb-sub">vs. current score</div></div>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px">*Savings compared to your current score tier. Rates are representative national averages for 2025.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 2 — CREDIT CARD DEBT OPTIMIZATION
+════════════════════════════════════════════ -->
+<div class="section-card" id="s2">
+  <div class="section-head">
+    <div class="s-num">02</div>
+    <div class="s-titles">
+      <h2>Credit Card Debt Optimization</h2>
+      <p>See how a lower APR through debt optimization changes what you owe over time</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="input-row">
+      <div class="field">
+        <label>Total Credit Card Balance</label>
+        <div class="input-wrap">
+          <span class="pfx">$</span>
+          <input type="number" id="cc-bal" class="pl" placeholder="8,500" min="0" step="1"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Your Average APR</label>
+        <div class="input-wrap">
+          <input type="number" id="cc-apr" class="pr" placeholder="24.99" min="0" max="100" step="0.01"/>
+          <span class="sfx">%</span>
+        </div>
+      </div>
+    </div>
+    <button class="calc-btn" onclick="calcCC()">Show My Debt Optimization →</button>
+    <div class="results" id="s2-res">
+      <div class="res-eyebrow">Credit Card APR Optimization Comparison</div>
+      <div style="overflow-x:auto">
+        <table class="dtm-table">
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Balance</th>
+              <th>APR</th>
+              <th>Annual Interest</th>
+              <th>Interest Difference</th>
+              <th>Annual Savings</th>
+              <th>5-Year Savings</th>
+            </tr>
+          </thead>
+          <tbody id="s2-tbody"></tbody>
+        </table>
+      </div>
+      <div class="hi-box" id="s2-hi">
+        <div><div class="hb-label">Annual Interest (Current)</div><div class="hb-val" id="s2-cur-int">—</div></div>
+        <div><div class="hb-label">Annual Interest (Optimized)</div><div class="hb-val" id="s2-opt-int">—</div></div>
+        <div><div class="hb-label">Your 5-Year Savings Opportunity</div><div class="hb-val" id="s2-5yr">—</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 3 — HYSA OPTIMIZATION
+════════════════════════════════════════════ -->
+<div class="section-card" id="s3">
+  <div class="section-head">
+    <div class="s-num">03</div>
+    <div class="s-titles">
+      <h2>High-Yield Savings Account Optimization</h2>
+      <p>Discover how much more your emergency fund could earn in a HYSA vs. a traditional savings account</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="input-row">
+      <div class="field">
+        <label>Emergency Fund Balance</label>
+        <div class="input-wrap">
+          <span class="pfx">$</span>
+          <input type="number" id="hysa-bal" class="pl" placeholder="10,000" min="0" step="500"/>
+        </div>
+      </div>
+    </div>
+    <button class="calc-btn" onclick="calcHYSA()">Show My HYSA Opportunity →</button>
+    <div class="results" id="s3-res">
+      <div class="res-eyebrow">Savings Account Comparison</div>
+      <div style="overflow-x:auto">
+        <table class="dtm-table">
+          <thead>
+            <tr>
+              <th>Account Type</th>
+              <th>Balance</th>
+              <th>Interest Rate</th>
+              <th>Rate Difference</th>
+              <th>Annual Interest Earned</th>
+              <th>30-Year Gain</th>
+            </tr>
+          </thead>
+          <tbody id="s3-tbody"></tbody>
+        </table>
+      </div>
+      <div class="hi-box">
+        <div><div class="hb-label">Additional Annual Earnings (HYSA)</div><div class="hb-val" id="s3-ann">—</div></div>
+        <div><div class="hb-label">30-Year HYSA Advantage</div><div class="hb-val" id="s3-30yr">—</div><div class="hb-sub">compounded annually</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 4 — INVESTING OPTIMIZATION
+════════════════════════════════════════════ -->
+<div class="section-card" id="s4">
+  <div class="section-head">
+    <div class="s-num">04</div>
+    <div class="s-titles">
+      <h2>Investing Optimization</h2>
+      <p>See the 30-year growth potential of consistent monthly investing at different contribution levels</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="input-row">
+      <div class="field">
+        <label>Your Monthly Investment Amount</label>
+        <div class="input-wrap">
+          <span class="pfx">$</span>
+          <input type="number" id="inv-mo" class="pl" placeholder="200" min="0" step="25"/>
+        </div>
+      </div>
+    </div>
+    <button class="calc-btn" onclick="calcInvest()">Calculate My Investment Growth →</button>
+    <div class="results" id="s4-res">
+      <div class="res-eyebrow">30-Year Investment Growth — Assuming 7% Avg Annual Return</div>
+      <div class="invest-grid" id="s4-cards"></div>
+      <div style="overflow-x:auto">
+        <table class="dtm-table">
+          <thead>
+            <tr>
+              <th>Monthly Contribution</th>
+              <th>Annual Contribution</th>
+              <th>Total Contributed</th>
+              <th>30-Year Value (7% return)</th>
+              <th>Total Gains</th>
+            </tr>
+          </thead>
+          <tbody id="s4-tbody"></tbody>
+        </table>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px">Assumes 7% average annual return compounded monthly. Past performance does not guarantee future results. For illustrative purposes only.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 5 — WEALTH OPTIMIZATION REPORT
+════════════════════════════════════════════ -->
+<div class="section-card" id="s5">
+  <div class="section-head">
+    <div class="s-num">05</div>
+    <div class="s-titles">
+      <h2>Wealth Optimization Report</h2>
+      <p>Your complete lifetime wealth opportunity — all four pillars combined</p>
+    </div>
+  </div>
+  <div class="section-body">
+    <p style="color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:6px">
+      Complete sections 1–4 above, then generate your personalized report to see the full picture of your financial opportunity.
+    </p>
+    <button class="run-report-btn" onclick="genReport()">✦ Generate My Wealth Report</button>
+
+    <div class="results" id="s5-res">
+      <div class="res-eyebrow" style="margin-top:28px">Your Wealth Optimization Summary</div>
+      <div style="overflow-x:auto">
+        <table class="dtm-table">
+          <thead>
+            <tr>
+              <th>Optimization Area</th>
+              <th>Current Path</th>
+              <th>Optimized Path</th>
+              <th>Opportunity</th>
+              <th>Time Frame</th>
+            </tr>
+          </thead>
+          <tbody id="s5-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="report-total">
+        <div class="rt-label">Your Total Wealth Opportunity</div>
+        <div class="rt-val" id="s5-total">—</div>
+        <div class="rt-sub" id="s5-sub">Combined lifetime impact of optimizing your credit, debt, savings, and investments</div>
+      </div>
+
+      <div style="text-align:center">
+        <button class="pdf-btn" onclick="downloadPDF()">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          Download Wealth Optimization Report (PDF)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="notice">
+  <strong>Disclaimer:</strong> All figures are estimates for illustrative and educational purposes only and do not constitute financial, lending, tax, or investment advice. Mortgage rates reflect representative 2025 national averages and vary by lender and individual profile. HYSA rate reflects Ally Bank's current rate of 3.00% APY (as of June 2026) vs. the FDIC national average of 0.38% APY for traditional savings. Investment projections assume 7% average annual return, compounded monthly, with no fees; actual returns will vary. Consult a licensed financial professional before making financial decisions.
+</div>
+
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+// GLOBAL STATE
+// ─────────────────────────────────────────────
+const state = {
+  s1: { band:null, mortAmt:null, curMo:null, excMo:null, saving30:null },
+  s2: { bal:null, apr:null, annSavings:null, fiveYrSavings:null },
+  s3: { bal:null, annGain:null, gain30:null },
+  s4: { mo:null, val30:null, contributed:null }
+};
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+const fmt  = n => '$' + Math.round(n).toLocaleString('en-US');
+const fmtD = n => '$' + parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const fmtP = n => n.toFixed(2) + '%';
+
+function scrollToSection(id){ document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'}) }
+
+// ── SCROLL SPY ──
+(function(){
+  const sections = ['s1','s2','s3','s4','s5'];
+  const navHeight = document.getElementById('prog-nav')?.offsetHeight || 60;
+
+  function setActive(id){
+    const n = id.replace('s','');
+    document.querySelectorAll('.nav-step').forEach(el=>el.classList.remove('active'));
+    const navEl = document.getElementById('nav'+n);
+    if(navEl) navEl.classList.add('active');
+  }
+
+  const observer = new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        setActive(entry.target.id);
+      }
+    });
+  },{
+    root: null,
+    rootMargin: `-${navHeight+10}px 0px -55% 0px`,
+    threshold: 0
+  });
+
+  // Wait for DOM ready
+  window.addEventListener('DOMContentLoaded', ()=>{
+    sections.forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) observer.observe(el);
+    });
+  });
+})();
+
+function pickBand(el, groupId){
+  document.querySelectorAll('#'+groupId+' .band').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+function pickRange(el, groupId){
+  document.querySelectorAll('#'+groupId+' .mrange').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function markDone(n){ document.getElementById('nav'+n).classList.add('done'); }
+
+// mortgage monthly payment
+function mortPayment(principal, annRate, yrs){
+  const r=annRate/100/12, n=yrs*12;
+  if(r===0) return principal/n;
+  return principal*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+}
+
+// compound growth of lump sum
+function compound(principal, rate, years){
+  return principal * Math.pow(1+rate, years);
+}
+
+// FV of monthly contributions
+function fvMonthly(mo, annRate, years){
+  const r=annRate/12, n=years*12;
+  if(r===0) return mo*n;
+  return mo*(Math.pow(1+r,n)-1)/r;
+}
+
+// ─────────────────────────────────────────────
+// SCORE/RATE DATA
+// ─────────────────────────────────────────────
+const BANDS = {
+  poor:  {label:'Poor',       range:'300–579', rate:8.50},
+  fair:  {label:'Fair',       range:'580–669', rate:7.10},
+  good:  {label:'Good',       range:'670–739', rate:6.40},
+  vgood: {label:'Very Good',  range:'740–799', rate:6.00},
+  exc:   {label:'Exceptional',range:'800–850', rate:5.65},
+};
+const BAND_ORDER = ['poor','fair','good','vgood','exc'];
+
+// CC optimized APR tiers — ordered from worst to best
+const OPT_APR = [
+  {label:'Average optimized rate',     rate:19.99},
+  {label:'Good credit card rate',      rate:16.99},
+  {label:'Excellent credit card rate', rate:11.99},
+];
+
+// ─────────────────────────────────────────────
+// SECTION 1 — CREDIT SCORE
+// ─────────────────────────────────────────────
+function calcScore(){
+  const bandEl = document.querySelector('#score-bands .band.active');
+  const rangeEl = document.querySelector('#mort-ranges .mrange.active');
+  if(!bandEl||!rangeEl){ alert('Please select your credit score range and expected mortgage amount.'); return; }
+
+  const bandKey = bandEl.dataset.band;
+  const loan = parseFloat(rangeEl.dataset.val);
+  const curData = BANDS[bandKey];
+  const curIdx = BAND_ORDER.indexOf(bandKey);
+
+  // Next tier up (or same if already at top)
+  const nextIdx = Math.min(curIdx + 1, BAND_ORDER.length - 1);
+  const nextKey = BAND_ORDER[nextIdx];
+  const nextData = BANDS[nextKey];
+
+  const tbody = document.getElementById('s1-tbody');
+  tbody.innerHTML='';
+
+  BAND_ORDER.forEach(key=>{
+    const b = BANDS[key];
+    const mo = mortPayment(loan, b.rate, 30);
+    const curMo = mortPayment(loan, curData.rate, 30);
+    const moSav = curMo - mo;
+    const yrSav = moSav * 360;
+    const isCur = key===bandKey;
+    const isNext = key===nextKey && !isCur;
+
+    const tr = document.createElement('tr');
+    if(isCur) tr.className='cur-row';
+    if(isNext) tr.className='you-row';
+    tr.innerHTML=`
+      <td class="${isCur?'hl':''}">${b.range}${isCur?' ★ (You)':''}${isNext?' ➜ (Next Tier)':''}</td>
+      <td>${b.label}</td>
+      <td>${fmtP(b.rate)}</td>
+      <td>${fmt(mo)}/mo</td>
+      <td class="${moSav>0?'pos':(moSav<0?'neg':'')}">${moSav>0?'+'+fmt(moSav)+'/mo':moSav===0?'—':fmt(moSav)+'/mo'}</td>
+      <td class="${yrSav>0?'pos':(yrSav<0?'neg':'')}">${yrSav>0?'+'+fmt(yrSav):yrSav===0?'—':fmt(yrSav)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const curMo = mortPayment(loan, curData.rate, 30);
+  const nextMo = mortPayment(loan, nextData.rate, 30);
+  const excData = BANDS['exc'];
+  const excMo = mortPayment(loan, excData.rate, 30);
+  const saving30 = (curMo - nextMo)*360;
+
+  state.s1 = {band:bandKey, mortAmt:loan, curMo, excMo:nextMo, saving30, nextLabel:nextData.label};
+
+  // Update label to reflect next tier
+  document.getElementById('s1-next-label').textContent = curIdx>=BAND_ORDER.length-1 ? 'Already at Top Tier' : 'At '+nextData.label+' Credit';
+  document.getElementById('s1-cur-mo').textContent = fmt(curMo)+'/mo';
+  document.getElementById('s1-exc-mo').textContent = fmt(nextMo)+'/mo';
+  document.getElementById('s1-30yr').textContent   = fmt(saving30);
+
+  show('s1-res'); markDone(1);
+}
+
+// ─────────────────────────────────────────────
+// SECTION 2 — CREDIT CARD
+// ─────────────────────────────────────────────
+function calcCC(){
+  const bal = parseFloat(document.getElementById('cc-bal').value);
+  const apr = parseFloat(document.getElementById('cc-apr').value);
+  if(!bal||!apr){ alert('Please enter your balance and APR.'); return; }
+
+  const tbody = document.getElementById('s2-tbody');
+  tbody.innerHTML='';
+
+  const curAnnInt = bal * (apr/100);
+
+  // Find the next tier down (first OPT_APR rate that is lower than current)
+  const nextOpt = OPT_APR.find(o => o.rate < apr) || OPT_APR[OPT_APR.length-1];
+
+  // Current row
+  const trCur = document.createElement('tr');
+  trCur.className='cur-row';
+  trCur.innerHTML=`
+    <td class="hl">Current (Your Rate) ★</td>
+    <td>${fmt(bal)}</td>
+    <td class="neg">${fmtP(apr)}</td>
+    <td class="neg">${fmt(curAnnInt)}</td>
+    <td>—</td><td>—</td><td>—</td>
+  `;
+  tbody.appendChild(trCur);
+
+  // Show all tiers for reference, highlight the next one
+  OPT_APR.forEach(o=>{
+    if(o.rate>=apr) return;
+    const optAnnInt = bal*(o.rate/100);
+    const diff = apr - o.rate;
+    const annSav = curAnnInt - optAnnInt;
+    const fiveYr = annSav * 5;
+    const isNext = o.rate === nextOpt.rate;
+    const tr=document.createElement('tr');
+    if(isNext) tr.className='you-row';
+    tr.innerHTML=`
+      <td class="${isNext?'hl':''}">${o.label}${isNext?' ➜ (Next Step)':''}</td>
+      <td>${fmt(bal)}</td>
+      <td class="pos">${fmtP(o.rate)}</td>
+      <td class="pos">${fmt(optAnnInt)}</td>
+      <td class="pos">−${fmtP(diff)}</td>
+      <td class="pos">${fmt(annSav)}</td>
+      <td class="pos">${fmt(fiveYr)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const nextOptAnnInt = bal*(nextOpt.rate/100);
+  const nextAnnSav = curAnnInt - nextOptAnnInt;
+  const nextFiveYr = nextAnnSav * 5;
+
+  // If APR already at or below lowest tier
+  if(!OPT_APR.some(o=>o.rate<apr)){
+    const o = OPT_APR[OPT_APR.length-1];
+    const optAnnInt = bal*(o.rate/100);
+    const diff = Math.abs(apr-o.rate);
+    const annSav = Math.abs(curAnnInt-optAnnInt);
+    const fiveYr = annSav*5;
+    const tr=document.createElement('tr');
+    tr.className='you-row';
+    tr.innerHTML=`
+      <td class="hl">${o.label} ➜ (Next Step)</td>
+      <td>${fmt(bal)}</td>
+      <td class="pos">${fmtP(o.rate)}</td>
+      <td class="pos">${fmt(optAnnInt)}</td>
+      <td class="pos">${diff.toFixed(2)}%</td>
+      <td class="pos">${fmt(annSav)}</td>
+      <td class="pos">${fmt(fiveYr)}</td>
+    `;
+    tbody.appendChild(tr);
+    state.s2 = {bal, apr, optApr:o.rate, annSavings:annSav, fiveYrSavings:fiveYr};
+    document.getElementById('s2-cur-int').textContent = fmt(curAnnInt);
+    document.getElementById('s2-opt-int').textContent = fmt(optAnnInt);
+    document.getElementById('s2-5yr').textContent     = fmt(fiveYr);
+    show('s2-res'); markDone(2);
+    return;
+  }
+
+  state.s2 = {bal, apr, optApr:nextOpt.rate, annSavings:nextAnnSav, fiveYrSavings:nextFiveYr};
+
+  document.getElementById('s2-cur-int').textContent = fmt(curAnnInt);
+  document.getElementById('s2-opt-int').textContent = fmt(nextOptAnnInt);
+  document.getElementById('s2-5yr').textContent     = fmt(nextFiveYr);
+
+  show('s2-res'); markDone(2);
+}
+
+// ─────────────────────────────────────────────
+// SECTION 3 — HYSA
+// ─────────────────────────────────────────────
+const TRAD_RATE = 0.38;
+const HYSA_RATE = 3.00;
+
+function calcHYSA(){
+  const bal = parseFloat(document.getElementById('hysa-bal').value);
+  if(!bal){ alert('Please enter your emergency fund balance.'); return; }
+
+  const tradAnn = bal*(TRAD_RATE/100);
+  const hysaAnn = bal*(HYSA_RATE/100);
+  const diff    = HYSA_RATE - TRAD_RATE;
+  const annGain = hysaAnn - tradAnn;
+
+  // compound 30yr
+  const trad30 = compound(bal, TRAD_RATE/100, 30) - bal;
+  const hysa30 = compound(bal, HYSA_RATE/100, 30) - bal;
+  const gain30 = hysa30 - trad30;
+
+  state.s3 = {bal, annGain, gain30};
+
+  const tbody = document.getElementById('s3-tbody');
+  tbody.innerHTML=`
+    <tr class="cur-row">
+      <td class="hl">Traditional Savings</td>
+      <td>${fmt(bal)}</td>
+      <td class="neg">${fmtP(TRAD_RATE)}</td>
+      <td>—</td>
+      <td class="neg">${fmt(tradAnn)}/yr</td>
+      <td class="neg">${fmt(trad30)}</td>
+    </tr>
+    <tr class="you-row">
+      <td class="hl">High-Yield Savings (HYSA)</td>
+      <td>${fmt(bal)}</td>
+      <td class="pos">${fmtP(HYSA_RATE)}</td>
+      <td class="pos">+${fmtP(diff)}</td>
+      <td class="pos">${fmt(hysaAnn)}/yr</td>
+      <td class="pos">${fmt(hysa30)}</td>
+    </tr>
+    <tr>
+      <td class="hl" style="color:var(--blush)">Your HYSA Advantage</td>
+      <td>—</td><td>—</td>
+      <td class="pos">${fmtP(diff)}</td>
+      <td class="pos">+${fmt(annGain)}/yr</td>
+      <td class="pos">+${fmt(gain30)}</td>
+    </tr>
+  `;
+
+  document.getElementById('s3-ann').textContent  = fmt(annGain)+'/yr';
+  document.getElementById('s3-30yr').textContent = fmt(gain30);
+
+  show('s3-res'); markDone(3);
+}
+
+// ─────────────────────────────────────────────
+// SECTION 4 — INVESTING
+// ─────────────────────────────────────────────
+const INV_RATE = 0.07;
+function invAmounts(base){
+  const amounts = new Set([50,100,200,300,500,750,1000]);
+  amounts.add(Math.round(base/25)*25||base);
+  return Array.from(amounts).sort((a,b)=>a-b);
+}
+
+function calcInvest(){
+  const mo = parseFloat(document.getElementById('inv-mo').value);
+  if(!mo){ alert('Please enter your monthly investment amount.'); return; }
+
+  const amounts = invAmounts(mo);
+  const cards   = document.getElementById('s4-cards');
+  const tbody   = document.getElementById('s4-tbody');
+  cards.innerHTML=''; tbody.innerHTML='';
+
+  // Find the next tier above the user's amount
+  const TIERS = [50,100,200,300,500,750,1000];
+  const nextTier = TIERS.find(t => t > mo) || mo * 1.5; // if above all tiers, use 1.5x
+
+  let myVal=0, myContrib=0, nextVal=0, nextContrib=0, nextMo=nextTier;
+  amounts.forEach(a=>{
+    const val = fvMonthly(a, INV_RATE, 30);
+    const contrib = a*12*30;
+    const gains = val-contrib;
+    const isMe = a===Math.round(mo/25)*25||a===mo;
+    const isNext = a===Math.round(nextTier/25)*25||a===nextTier;
+
+    if(isMe){ myVal=val; myContrib=contrib; }
+    if(a===nextTier){ nextVal=val; nextContrib=contrib; }
+
+    // card
+    const card = document.createElement('div');
+    card.className = 'inv-card'+(isMe?' highlight':'');
+    card.innerHTML=`
+      ${isMe?'<div class="you-here">Your Amount</div>':''}
+      <div class="ic-label">Monthly</div>
+      <div class="ic-mo">${fmt(a)}</div>
+      <div class="ic-val">${fmt(val)}</div>
+      <div class="ic-sub">30-yr value · +${fmt(gains)} gains</div>
+    `;
+    cards.appendChild(card);
+
+    // row
+    const tr=document.createElement('tr');
+    if(isMe) tr.className='you-row';
+    tr.innerHTML=`
+      <td class="${isMe?'hl':''}">${fmt(a)}/mo${isMe?' ★ (You)':''}${(!isMe && a===nextTier)?' ➜ (Next Tier)':''}</td>
+      <td>${fmt(a*12)}/yr</td>
+      <td>${fmt(contrib)}</td>
+      <td class="${isMe?'pos':''}">${fmt(val)}</td>
+      <td class="pos">+${fmt(gains)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Compute next tier value if not already in amounts list
+  if(nextVal===0){
+    nextVal = fvMonthly(nextTier, INV_RATE, 30);
+    nextContrib = nextTier*12*30;
+  }
+
+  state.s4 = {mo, val30:myVal, contributed:myContrib, nextMo:nextTier, nextVal30:nextVal, nextContrib};
+  show('s4-res'); markDone(4);
+}
+
+// ─────────────────────────────────────────────
+// SECTION 5 — REPORT
+// ─────────────────────────────────────────────
+function genReport(){
+  const rows=[];
+  let total=0;
+
+  if(state.s1.saving30){
+    rows.push({
+      area:'Credit Score → Mortgage',
+      cur: state.s1.curMo ? fmt(state.s1.curMo)+'/mo' : '—',
+      opt: state.s1.excMo ? fmt(state.s1.excMo)+'/mo' : '—',
+      opp: fmt(state.s1.saving30),
+      time:'30 years'
+    });
+    total+=state.s1.saving30;
+  }
+
+  if(state.s2.fiveYrSavings){
+    rows.push({
+      area:'Credit Card APR Optimization',
+      cur: state.s2.apr ? fmtP(state.s2.apr)+' APR' : '—',
+      opt: state.s2.optApr ? fmtP(state.s2.optApr)+' APR' : 'Optimized APR',
+      opp: fmt(state.s2.fiveYrSavings),
+      time:'5 years'
+    });
+    total+=state.s2.fiveYrSavings;
+  }
+
+  if(state.s3.gain30){
+    rows.push({
+      area:'HYSA vs. Traditional Savings',
+      cur: fmtP(TRAD_RATE)+' savings rate',
+      opt: fmtP(HYSA_RATE)+' HYSA rate',
+      opp: fmt(state.s3.gain30),
+      time:'30 years'
+    });
+    total+=state.s3.gain30;
+  }
+
+  if(state.s4.val30){
+    rows.push({
+      area:'Investment Growth (7% avg)',
+      cur: fmt(state.s4.mo)+'/mo invested',
+      opt: fmt(state.s4.nextMo)+'/mo invested',
+      opp: fmt(state.s4.nextVal30-state.s4.nextContrib),
+      time:'30 years'
+    });
+    total+=(state.s4.nextVal30-state.s4.nextContrib);
+  }
+
+  if(rows.length===0){
+    alert('Please complete at least one section above to generate your report.'); return;
+  }
+
+  const tbody=document.getElementById('s5-tbody');
+  tbody.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="hl">${r.area}</td><td>${r.cur}</td><td class="pos">${r.opt}</td><td class="pos">${r.opp}</td><td>${r.time}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('s5-total').textContent = fmt(total);
+  document.getElementById('s5-sub').textContent   = `Based on ${rows.length} of 4 optimization area${rows.length!==1?'s':''} completed`;
+
+  show('s5-res'); markDone(5);
+  document.getElementById('s5').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ─────────────────────────────────────────────
+// PDF DOWNLOAD
+// ─────────────────────────────────────────────
+function downloadPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
+
+  const W=216, mg=20;
+  let y=mg;
+
+  // brand colors
+  const WINE=[139,157,182], CRIMSON=[106,124,149], GOLD=[220,175,162], BLUSH=[220,175,162], LINEN=[240,231,224], MUTED=[122,136,152];
+
+  // header bar
+  doc.setFillColor(...WINE);
+  doc.rect(0,0,W,28,'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(18);
+  doc.setTextColor(...LINEN);
+  doc.text('Deeper Than Money',mg,13);
+  doc.setFontSize(9);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(...BLUSH);
+  doc.text('WEALTH OPTIMIZATION REPORT',mg,20);
+
+  // date
+  doc.setFontSize(8);
+  doc.setTextColor(...BLUSH);
+  doc.text('Generated: '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}), W-mg, 20, {align:'right'});
+
+  y=38;
+
+  // title
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(20);
+  doc.setTextColor(...CRIMSON);
+  doc.text('Your Wealth Optimization Report', mg, y);
+  y+=8;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(10);
+  doc.setTextColor(...MUTED);
+  doc.text('A personalized analysis of your lifetime financial opportunity', mg, y);
+  y+=12;
+
+  // divider
+  doc.setDrawColor(...BLUSH);
+  doc.setLineWidth(0.5);
+  doc.line(mg,y,W-mg,y);
+  y+=10;
+
+  // ── S1 ──
+  if(state.s1.saving30){
+    sectionHeader(doc,'Section 1: Credit Score Impact',y,W,mg,WINE,LINEN); y+=12;
+    const s1Body = BAND_ORDER.map(k=>{
+      const b=BANDS[k];
+      const mo=mortPayment(state.s1.mortAmt,b.rate,30);
+      const curMo=state.s1.curMo;
+      const moSav=curMo-mo;
+      const yrSav=moSav*360;
+      const isCur=k===state.s1.band;
+      return [
+        b.range+(isCur?' (You)':''),
+        b.label,
+        fmtP(b.rate),
+        fmt(mo)+'/mo',
+        moSav>0?'+'+fmt(moSav):moSav===0?'--':fmt(moSav),
+        yrSav>0?'+'+fmt(yrSav):yrSav===0?'--':fmt(yrSav)
+      ];
+    });
+    doc.autoTable({
+      startY:y, margin:{left:mg,right:mg},
+      head:[['Score Range','Credit Tier','APR','Monthly Payment','Mo. Savings vs. You','30-Yr Savings vs. You']],
+      body: s1Body,
+      styles:{fontSize:9,cellPadding:3},
+      headStyles:{fillColor:WINE,textColor:LINEN,fontStyle:'bold'},
+      columnStyles:{0:{cellWidth:30},1:{cellWidth:22},2:{cellWidth:16},3:{cellWidth:26},4:{cellWidth:30},5:{cellWidth:30}},
+      didParseCell(d){
+        if(d.section==='body' && BAND_ORDER[d.row.index]===state.s1.band){
+          d.cell.styles.fillColor=BLUSH;
+          d.cell.styles.textColor=[255,255,255];
+          d.cell.styles.fontStyle='bold';
+        }
+      }
+    });
+    y=doc.lastAutoTable.finalY+10;
+    highlightBox(doc,'30-Year Mortgage Savings Opportunity: '+fmt(state.s1.saving30), y, W, mg, WINE);
+    y+=16;
+  }
+
+  // ── S2 ──
+  if(state.s2.fiveYrSavings){
+    if(y>220){ doc.addPage(); y=mg; }
+    sectionHeader(doc,'Section 2: Credit Card Debt Optimization',y,W,mg,WINE,LINEN); y+=12;
+    const bal=state.s2.bal, apr=state.s2.apr;
+    const curAnn=bal*(apr/100);
+    const rows2=[];
+    rows2.push(['Current Rate (You)',fmt(bal),fmtP(apr),fmt(curAnn),'--','--','--']);
+    OPT_APR.filter(o=>o.rate<apr).forEach(o=>{
+      const optAnn=bal*(o.rate/100);
+      const diff=apr-o.rate;
+      const ann=curAnn-optAnn;
+      rows2.push([o.label,fmt(bal),fmtP(o.rate),fmt(optAnn),diff.toFixed(2)+'%',fmt(ann),fmt(ann*5)]);
+    });
+    doc.autoTable({
+      startY:y, margin:{left:mg,right:mg},
+      head:[['Scenario','Balance','APR','Annual Interest','Rate Diff','Annual Savings','5-Yr Savings']],
+      body:rows2,
+      styles:{fontSize:9,cellPadding:3},
+      headStyles:{fillColor:WINE,textColor:LINEN,fontStyle:'bold'},
+      columnStyles:{0:{cellWidth:38},1:{cellWidth:22},2:{cellWidth:16},3:{cellWidth:26},4:{cellWidth:16},5:{cellWidth:24},6:{cellWidth:24}},
+      didParseCell(d){
+        if(d.section==='body' && d.row.index===0){
+          d.cell.styles.fillColor=BLUSH;
+          d.cell.styles.textColor=[255,255,255];
+          d.cell.styles.fontStyle='bold';
+        }
+      }
+    });
+    y=doc.lastAutoTable.finalY+10;
+    highlightBox(doc,'5-Year Credit Card Savings Opportunity: '+fmt(state.s2.fiveYrSavings),y,W,mg,WINE);
+    y+=16;
+  }
+
+  // ── S3 ──
+  if(state.s3.gain30){
+    if(y>220){ doc.addPage(); y=mg; }
+    sectionHeader(doc,'Section 3: HYSA Optimization',y,W,mg,WINE,LINEN); y+=12;
+    const bal=state.s3.bal;
+    const tradAnn=bal*(TRAD_RATE/100), hysaAnn=bal*(HYSA_RATE/100);
+    const trad30=compound(bal,TRAD_RATE/100,30)-bal;
+    const hysa30=compound(bal,HYSA_RATE/100,30)-bal;
+    doc.autoTable({
+      startY:y, margin:{left:mg,right:mg},
+      head:[['Account Type','Balance','Rate','Rate Difference','Annual Interest','30-Year Gain']],
+      body:[
+        ['Traditional Savings (You)',fmt(bal),fmtP(TRAD_RATE),'--',fmt(tradAnn)+'/yr',fmt(trad30)],
+        ['High-Yield Savings (HYSA)',fmt(bal),fmtP(HYSA_RATE),'+'+fmtP(HYSA_RATE-TRAD_RATE),fmt(hysaAnn)+'/yr',fmt(hysa30)],
+        ['HYSA Advantage','--','--','+'+fmtP(HYSA_RATE-TRAD_RATE),'+'+fmt(state.s3.annGain)+'/yr','+'+fmt(state.s3.gain30)]
+      ],
+      styles:{fontSize:9,cellPadding:3},
+      headStyles:{fillColor:WINE,textColor:LINEN,fontStyle:'bold'},
+      didParseCell(d){
+        if(d.section==='body' && d.row.index===0){
+          d.cell.styles.fillColor=BLUSH;
+          d.cell.styles.textColor=[255,255,255];
+          d.cell.styles.fontStyle='bold';
+        }
+      }
+    });
+    y=doc.lastAutoTable.finalY+10;
+    highlightBox(doc,'30-Year HYSA Interest Advantage: '+fmt(state.s3.gain30),y,W,mg,WINE);
+    y+=16;
+  }
+
+  // ── S4 ──
+  if(state.s4.val30){
+    if(y>200){ doc.addPage(); y=mg; }
+    sectionHeader(doc,'Section 4: Investment Growth (7% Avg. Annual Return)',y,W,mg,WINE,LINEN); y+=12;
+    const amounts=invAmounts(state.s4.mo);
+    const s4Body=amounts.map(a=>{
+      const val=fvMonthly(a,INV_RATE,30);
+      const contrib=a*12*30;
+      const isMe=a===(Math.round(state.s4.mo/25)*25)||a===state.s4.mo;
+      return [fmt(a)+'/mo'+(isMe?' (You)':''),fmt(a*12)+'/yr',fmt(contrib),fmt(val),'+'+fmt(val-contrib)];
+    });
+    doc.autoTable({
+      startY:y, margin:{left:mg,right:mg},
+      head:[['Monthly Contribution','Annual Contribution','Total Contributed','30-Year Value','Total Gains']],
+      body:s4Body,
+      styles:{fontSize:9,cellPadding:3},
+      headStyles:{fillColor:WINE,textColor:LINEN,fontStyle:'bold'},
+      didParseCell(d){
+        if(d.section==='body'){
+          const a=amounts[d.row.index];
+          const isMe=a===(Math.round(state.s4.mo/25)*25)||a===state.s4.mo;
+          if(isMe){
+            d.cell.styles.fillColor=BLUSH;
+            d.cell.styles.textColor=[255,255,255];
+            d.cell.styles.fontStyle='bold';
+          }
+        }
+      }
+    });
+    y=doc.lastAutoTable.finalY+10;
+    highlightBox(doc,'Your 30-Year Investment Gain Opportunity: '+fmt(state.s4.nextVal30-state.s4.nextContrib),y,W,mg,WINE);
+    y+=16;
+  }
+
+  // ── S5 SUMMARY ──
+  if(y>180){ doc.addPage(); y=mg; }
+  sectionHeader(doc,'Section 5: Your Total Wealth Optimization Summary',y,W,mg,WINE,LINEN); y+=12;
+
+  const summaryRows=[];
+  let grandTotal=0;
+  if(state.s1.saving30){ summaryRows.push(['Credit Score / Mortgage',fmt(state.s1.curMo)+'/mo',fmt(state.s1.excMo)+'/mo',fmt(state.s1.saving30),'30 years']); grandTotal+=state.s1.saving30; }
+  if(state.s2.fiveYrSavings){ summaryRows.push(['Credit Card APR Optimization',fmtP(state.s2.apr)+' APR',fmtP(state.s2.optApr||11.99)+' APR',fmt(state.s2.fiveYrSavings),'5 years']); grandTotal+=state.s2.fiveYrSavings; }
+  if(state.s3.gain30){ summaryRows.push(['HYSA vs. Traditional Savings',fmtP(TRAD_RATE)+' rate',fmtP(HYSA_RATE)+' HYSA',fmt(state.s3.gain30),'30 years']); grandTotal+=state.s3.gain30; }
+  if(state.s4.val30){ summaryRows.push(['Investment Growth (7% avg)',fmt(state.s4.mo)+'/mo',fmt(state.s4.nextMo)+'/mo',fmt(state.s4.nextVal30-state.s4.nextContrib),'30 years']); grandTotal+=(state.s4.nextVal30-state.s4.nextContrib); }
+
+  doc.autoTable({
+    startY:y, margin:{left:mg,right:mg},
+    head:[['Optimization Area','Current Path','Optimized Path','Opportunity','Time Frame']],
+    body:summaryRows,
+    styles:{fontSize:9,cellPadding:3.5},
+    headStyles:{fillColor:WINE,textColor:LINEN,fontStyle:'bold'},
+    columnStyles:{0:{cellWidth:52},1:{cellWidth:32},2:{cellWidth:32},3:{cellWidth:28},4:{cellWidth:22}},
+    alternateRowStyles:{fillColor:[249,244,241]}
+  });
+  y=doc.lastAutoTable.finalY+12;
+
+  // grand total box
+  doc.setFillColor(...WINE);
+  doc.roundedRect(mg,y,W-2*mg,28,3,3,'F');
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(10);
+  doc.setTextColor(...BLUSH);
+  doc.text('YOUR TOTAL WEALTH OPPORTUNITY', W/2, y+9, {align:'center'});
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(22);
+  doc.setTextColor(...LINEN);
+  doc.text(fmt(grandTotal), W/2, y+21, {align:'center'});
+  y+=36;
+
+  // disclaimer
+  doc.setFont('helvetica','italic');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...MUTED);
+  const disc='Disclaimer: All figures are estimates for illustrative and educational purposes only and do not constitute financial, lending, tax, or investment advice. Mortgage rates reflect representative 2025 national averages. HYSA rate reflects Ally Bank\'s current rate of 3.00% APY (as of June 2026) vs. the FDIC national average of 0.38% APY for traditional savings. Investment projections assume 7% average annual return compounded monthly with no fees. Consult a licensed financial professional before making financial decisions.';
+  const lines=doc.splitTextToSize(disc, W-2*mg);
+  doc.text(lines, mg, y);
+
+  doc.save('Deeper_Than_Money_Wealth_Report.pdf');
+}
+
+function sectionHeader(doc,title,y,W,mg,fill,textColor){
+  doc.setFillColor(...fill);
+  doc.roundedRect(mg,y,W-2*mg,10,2,2,'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...textColor);
+  doc.text(title,mg+4,y+7);
+}
+
+function highlightBox(doc,text,y,W,mg,fill){
+  doc.setFillColor(...fill);
+  doc.setGState && doc.setGState(new doc.GState({opacity:0.12}));
+  doc.rect(mg,y,W-2*mg,10,'F');
+  doc.setGState && doc.setGState(new doc.GState({opacity:1}));
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...fill);
+  doc.text('  *  '+text, mg+4, y+7);
+}
+
+// ─────────────────────────────────────────────
+// UTIL
+// ─────────────────────────────────────────────
+function show(id){ document.getElementById(id).classList.add('show'); }
+</script>
+</body>
+</html>
